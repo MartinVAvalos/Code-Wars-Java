@@ -5,7 +5,10 @@ public class SubStringFinder
     {
         String[] search4 = {"lemon", "red", "mighty", "star", "light", "havoc"};
         String[] list = {"red", "sporty", "starlight", "flag"};
-        inArray(search4, list);
+        String[] answer = inArray(search4, list);
+        for(String word: answer) {
+            System.out.println(word);
+        }
     }
 
     public static String[] inArray(String[] search4, String[] list) {
@@ -15,7 +18,6 @@ public class SubStringFinder
             for(int lIndex = 0; lIndex < list.length; lIndex++) {
                 if(list[lIndex].contains(search4[sIndex]) && !al.contains(search4[sIndex])) {
                     al.add(search4[sIndex]);
-                    System.out.println(search4[sIndex]); 
                 }
             }
         }
