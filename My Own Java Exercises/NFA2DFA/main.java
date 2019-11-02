@@ -32,7 +32,7 @@ public class main
         FTuple.askForN();
         //Create NFA
         List<Integer[]> nfa = FTuple.createN(nfaQ, nfaE);
-        FTuple.printN(nfa);
+        // FTuple.printN(nfa);
 
         /*** RETRIEVE Start State***/
         //Ask for start State and create startState Variable
@@ -43,6 +43,7 @@ public class main
         List<Integer[]> finalStates = FTuple.findFinalStates();
 
         /*** RETRIEVE Start Final States***/
-        List<Integer[]> dfa = FTuple.nfa2dfa(nfaQ, nfaE, nfa, startState, finalStates);
+        // List<List<Integer>> dfa = 
+        FTuple.nfa2dfa(nfaQ, nfaE, nfa, startState, finalStates);
     }
 }

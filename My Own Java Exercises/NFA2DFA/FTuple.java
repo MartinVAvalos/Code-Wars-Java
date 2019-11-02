@@ -158,109 +158,314 @@ public class FTuple {
     }
 
     // nfaQ, nfaE, nfa, startState
-    public static List<Integer[]> nfa2dfa(int[] nfaStates, String[] alphabet, List<Integer[]> nfa, int sState, List<Integer[]> fStates) {
-        List<Integer[]> nfaAsDFA = new ArrayList<>();
-        List<Integer[]> dfa = new ArrayList<>();
-        int epsilonOfStart = alphabet.length+1;
-                nfaAsDFA.add(grabStartofDFA(nfa, sState, epsilonOfStart));
-                // Successful at grabbing index epsilon of start state. Use line 176
-                //to convert epsilon set into an Integer array and return it.
+    public static void nfa2dfa(
+        int[] nfaStates, String[] alphabet, 
+        List<Integer[]> nfa, 
+        int sState, 
+        List<Integer[]> fStates) {
+        ArrayList<ArrayList<Integer>> dfaState = new ArrayList();
+        ArrayList<ArrayList<ArrayList<Integer>>> mergedArray = new ArrayList();
+        ArrayList<ArrayList<ArrayList<Integer>>> temp = new ArrayList();
+        ArrayList<ArrayList<Integer>> dfa = new ArrayList();
+        ArrayList<Integer> zero = new ArrayList<>(Arrays.asList(0));
+        int epsilon = alphabet.length+1;
 
-                //returns for dfa // findSetOfDFAState();
-                System.out.println("it's time boiz");
-                // alphabet.lenth, 3c
-                // getNFASet(nfa, 4, 3, 2);
+        dfaState.add(epsilonEnclosure(nfa, sState, epsilon));
 
-                getNFASet(nfa, 2, 1, 0);
+        int currentDFAState = 0;
+        mergedArray.add(mergingArrays(dfaState.get(0), nfa, alphabet.length));
+        System.out.println("It's time boiz");System.out.println("It's time boiz");System.out.println("It's time boiz");
 
-        
-        // dfa ex: A = 1+
-        //DFA(A, a) = {b}
-        //DFA(A, b) = {empty}
-        //DFA(B, a) = {B}
-        //DFA(B, b) = {C}
-        // public static String[] createE(int arrayLength) {
-        // String[] array = new String[arrayLength];
-        // int letter = 97;
-        // for(int i = 0; i<arrayLength; i++) {
-        //     // array[i] = i;
-        //     array[i] = String.valueOf((char)letter);
-        //     letter = letter+1;
+        // for(int i=0; i < mergedArray.get(mergedArray.size() - 1).get(mergedArray.size() -1); i++) {
+            System.out.println("hello: " + mergedArray.get(mergedArray.size() - 1).get(0));
         // }
-        // return array;
-        // }
+        // dfaState.add(mergedArray.get(mergedArray.size() - 1).get(0));
+        // mergedArray.add(mergingArrays(dfaState.get(1), nfa, alphabet.length));
+
+        // dfaState.add(mergedArray.get(mergedArray.size() - 1).get(1));
 
 
-
-        //Map DFA's start state
-
-        //Find rest of DFA
-        // fStates.add(acceptSet());
-        return dfa;
-    }
-
-    public static Integer[] grabStartofDFA(List<Integer[]> nfa2dfa, int startState, int epsilon) {
-        List<Integer> al = new ArrayList<>();
-        int epsilonOfStart = startState * epsilon - 1;
-        for (int i = 0; i < nfa2dfa.get(epsilonOfStart).length; i++) {      
-            // System.out.println("nfa2dfa.get("+epsilonOfStart+")["+i+"] =  " +nfa2dfa.get(epsilonOfStart)[i]);
-            al.add(nfa2dfa.get(epsilonOfStart)[i]);
+        ArrayList<Integer> save1 = new ArrayList();
+        ArrayList<Integer> save2 = new ArrayList();
+        boolean complete = false; 
+        while(!complete) {
+            for(int i = 0; i < dfaState.size(); i++) {
+                for(int j = 0; j < mergedArray.get(mergedArray.size() - 1).size(); j++) {
+                    System.out.println("j: " + j);
+                    System.out.println("mergeSize: " + mergedArray.get(mergedArray.size() - 1).size());
+                    System.out.println("dfa" + dfaState.get(i).toString());
+                    System.out.println("merged" + mergedArray.get(mergedArray.size() - 1).get(j).toString());
+                    if(!dfaState.get(i).equals(mergedArray.get(mergedArray.size() - 1).get(j))
+                        && !mergedArray.get(mergedArray.size() - 1).get(j).equals(zero)) {
+                        
+                        System.out.println("New DFA State");
+                        dfaState.add(mergedArray.get(mergedArray.size() - 1).get(j));
+                        temp.add(mergingArrays(dfaState.get(dfaState.size() - 1), nfa, alphabet.length));
+                    }
+                    else {
+                        complete = true;
+                    }
+                }
+                for(ArrayList<ArrayList<Integer>> al: temp) {
+                    mergedArray.add(al);
+                }
+            }
+            // ArrayList<Integer> noDupes = new ArrayList<>(new HashSet<>(al.get(al.size() - 1)));
         }
-        al.add(startState);
-
-        List<Integer> listWithoutDuplicates = new ArrayList<> (new HashSet<>(al));
-  
-        Integer[] startStateSet = new Integer[listWithoutDuplicates.size()];
-        startStateSet = listWithoutDuplicates.toArray(startStateSet);
-        for (Integer x : startStateSet) 
-            System.out.print(x + " "); 
-
-        return startStateSet;
+        printDFA(dfaState, mergedArray, currentDFAState, alphabet);
+        printDFA(dfaState, mergedArray, 1, alphabet);
+        printDFA(dfaState, mergedArray, 2, alphabet);
+        
     }
 
-    public static Integer[] getNFASet(List<Integer[]> nfa, int aLength, int state, int alphabetElement) {
-        List<Integer> al = new ArrayList<>();
-        int alphabetIndex = state * aLength-(aLength-alphabetElement);
-        for (int i = 0; i < nfa.get(alphabetIndex).length; i++) {      
-            System.out.println("nfa.get("+alphabetIndex+")["+i+"] =  " +nfa.get(alphabetIndex)[i]);
-            al.add(nfa.get(alphabetIndex)[i]);
+    public static ArrayList<Integer> findE(List<Integer[]> nfa, int state, int epsilon) {
+        ArrayList<Integer> al = new ArrayList<>();
+        int epsilonOfStart = state * epsilon - 1;
+        if (state == 0) { //this means the state is going to an empty state (dead state)
+            al.add(0);
+            return al;
         }
+        for (int i = 0; i < nfa.get(epsilonOfStart).length; i++) {      
+            al.add(nfa.get(epsilonOfStart)[i]);
+        }
+        al.add(state);
 
-        List<Integer> listWithoutDuplicates = new ArrayList<> (new HashSet<>(al));
+        Collections.sort(al); 
+        ArrayList<Integer> epsilonSet = new ArrayList<> (new HashSet<>(al));
   
-        Integer[] startStateSet = new Integer[listWithoutDuplicates.size()];
-        startStateSet = listWithoutDuplicates.toArray(startStateSet);
-        for (Integer x : startStateSet) 
-            System.out.print(x + " "); 
+        // List to Array Conversion 
+        // for (int i =0; i < noDupes.size(); i++) 
+        //     epsilonSet[i] = noDupes.get(i);
+  
+        // System.out.println("find E:"); 
+        // for (Integer x : epsilonSet) 
+        //     System.out.print(x + " ");
+        // System.out.println(); 
 
-        return startStateSet;
+        return epsilonSet;
     }
 
-    // Integer[]        List<Integer[]> nfa2dfa, int startState, int epsilon
-    public static void findSetOfDFAState(Integer[] nfaSetAsDFA, int[] nfaStates, String[] alphabet, List<Integer[]> nfa, int sState, List<Integer[]> fStates) {
-        List<Integer> al = new ArrayList<>();
-        
-        // for(int nfaAsDFACounter = 0; nfaAsDFACounter < nfaSetAsDFA.length; nfaAsDFACounter++) {
+    public static ArrayList<Integer> epsilonEnclosure(
+        List<Integer[]> nfa, 
+        int state,
+        int epsilon) {
 
-        // }
-        
-        // int epsilonOfStart = startState * epsilon - 1;
-        // {1, 3}
-        for(int nfaAsDFACounter = 0; nfaAsDFACounter < nfaSetAsDFA.length; nfaAsDFACounter++) {
-            for (int i = 0; i < nfa.get(nfaAsDFACounter).length; i++) {      
-                // al.add(nfa2dfa.get(epsilonOfStart)[i]);
-                System.out.println(nfa.get(nfaSetAsDFA[i])[i]);
+        ArrayList<ArrayList<Integer>> al = new ArrayList();
+        ArrayList<ArrayList<Integer>> save = new ArrayList();
+        ArrayList<ArrayList<Integer>> temp = new ArrayList();
+
+        al.add(findE(nfa, state, epsilon));
+        boolean unique = false;
+        for (int i = 0; i < al.get(0).size(); i++) {
+            if(al.get(0).get(i) != state) {
+                unique = true;
             }
         }
 
-        List<Integer> listWithoutDuplicates = new ArrayList<> (new HashSet<>(al));
-  
-        Integer[] startStateSet = new Integer[listWithoutDuplicates.size()];
-        startStateSet = listWithoutDuplicates.toArray(startStateSet);
-        // for (Integer x : startStateSet) 
-        //     System.out.print(x + " "); 
+        if(!unique) {
+            // System.out.println("Enclosure: Not Unique");
+            return al.get(0);
+        }
+        else {
+            boolean complete = false;
+            while(!complete) {
+                //save to compare later
+                save.add(al.get(al.size()-1));
 
-        
-        // return startStateSet;
+                //add all epsilons, and then remove duplicates
+                for(int i = 0; i < al.get(al.size()-1).size(); i++) {
+                    if(i > 0) {
+                        temp.add(findE(nfa, al.get(al.size() - 1).get(i), epsilon));
+                        for (int j = 0; j < temp.get(temp.size() - 2).size(); j ++) {
+                            temp.get(temp.size() - 1).add(temp.get(temp.size() - 2).get(j));
+                        }
+                    }
+                    else {
+                        temp.add(findE(nfa, al.get(al.size() - 1).get(i), epsilon));
+                    }
+                }
+                ArrayList<Integer> noDupes = new ArrayList<>(new HashSet<>(temp.get(temp.size() - 1)));
+                al.add(noDupes);
+
+                if(al.get(al.size() - 1).contains(0) && al.get(al.size() - 1).size() > 1) {
+                    al.get(al.size() - 1).removeAll(Arrays.asList(0));
+                } 
+                // // compare saved with new set
+                if(al.get(al.size()-1).equals(save.get(save.size()-1))) {
+                    complete = true;
+                    // System.out.println("Enclosure: Awesome sauce!");
+                }
+            }
+            return al.get(al.size() - 1);
+        }
+    }
+
+    public static ArrayList<Integer> getSet(List<Integer[]> nfa, int state, int aLength, int alphabetElement) {
+        ArrayList<Integer> al = new ArrayList<>();
+        int alphabetIndex = ((state-1) * (aLength + 1)) + alphabetElement;
+        //alphabetIndex = state * aLength-(aLength-alphabetElement);
+        if (state == 0) { //this means the state is going to an empty state (dead state)
+            al.add(0);
+            return al;
+        }
+        for (int i = 0; i < nfa.get(alphabetIndex).length; i++) {      
+            // System.out.println("nfa.get("+alphabetIndex+")["+i+"] =  " +nfa.get(alphabetIndex)[i]);
+            al.add(nfa.get(alphabetIndex)[i]);
+        }
+
+        ArrayList<Integer> set = new ArrayList<> (new HashSet<>(al));
+  
+        // System.out.println("get Set:"); 
+        // for (Integer x : set) 
+        //     System.out.print(x + " ");
+        // System.out.println(); 
+
+        return set;
+    }
+
+    public static ArrayList<Integer> getDFASetofAlphabet(Integer state, List<Integer[]> nfa, int aLength, int alphabetElement) {
+        ArrayList<ArrayList<Integer>> al = new ArrayList();
+        ArrayList<ArrayList<Integer>> save = new ArrayList();
+        ArrayList<ArrayList<Integer>> temp = new ArrayList();
+
+        // getSet(nfa, nfaAsDFA.get(nfaAsDFA.size() - 1).get(0), alphabet.length, 0);
+        al.add(getSet(nfa, state, aLength, alphabetElement));
+        System.out.println("First added: " + al.get(0).get(0));
+        System.out.println("state: " + state);
+        boolean unique = false;
+        for (int i = 0; i < al.get(0).size(); i++) {
+            if(al.get(0).get(0) != state) {
+                unique = true;
+            }
+        }
+
+        if(!unique) {
+            // System.out.println("Alphabet: Not Unique");
+            return al.get(0);
+        }
+        else {
+            boolean complete = false;
+            while(!complete) {
+                //save to compare later
+                save.add(0, new ArrayList(al.get(al.size()-1)));
+
+
+                //add all alphabetElement, and then remove duplicates
+                for(int i = 0; i < al.get(al.size()-1).size(); i++) {
+                    if(i > 0) {
+                        temp.add(getSet(nfa, al.get(al.size() - 1).get(i), aLength, alphabetElement));
+                        // System.out.println("temp.get(size() - 1)" + temp.get(temp.size() - 1));
+                        // System.out.println("temp.get(size() - 2)" + temp.get(temp.size() - 2));
+                        for (int j = 0; j < temp.get(temp.size() - 2).size(); j ++) {
+                            temp.get(temp.size() - 1).add(temp.get(temp.size() - 2).get(j));
+                        }
+                    }
+                    else {
+                        temp.add(new ArrayList(getSet(nfa, al.get(al.size() - 1).get(i), aLength, alphabetElement)));
+                        // for(int k = 0; k < temp.get(temp.size() - 2).size(); k++) {
+                        //     temp.get(temp.size() - 1).add(temp.get(temp.size() - 2).get(k));
+                        // }
+                    }
+                }
+                
+                for(int i = 0; i < temp.get(temp.size() - 1).size(); i++) {
+                    al.get(al.size() - 1).add(temp.get(temp.size() -1 ).get(i));
+                }
+                ArrayList<Integer> noDupes = new ArrayList<>(new HashSet<>(al.get(al.size() - 1)));
+
+                al.add(new ArrayList(noDupes));
+
+                Collections.sort(al.get(al.size() - 1));
+
+                Collections.sort(save.get(0));
+
+                // // // compare saved with new set
+                // System.out.println("al.get(size() - 1)" + al.get(al.size() - 1));
+                // System.out.println("save.get(size() - 1)" + save.get(0));
+                if(al.get(al.size() - 1).size() == save.get(0).size()) {
+                    for(int i = 0; i<al.get(al.size() - 1).size(); i++) {
+                        if(al.get(al.size() - 1).get(i) == save.get(0).get(i)) {
+                            complete = true;
+                        }
+                    }
+                }
+                if(al.get(al.size()-1).equals(save.get(0))) {
+                    if(al.get(al.size() - 1).contains(0) && al.get(al.size() - 1).size() > 1) {
+                        al.get(al.size() - 1).removeAll(Arrays.asList(0));
+                    } 
+                    System.out.println("final al" + al.get(al.size() - 1));
+                    complete = true;
+                    // System.out.println("Alphabet: Awesome sauce!");
+                }
+            }
+            return al.get(al.size() - 1);
+        }
+    }
+
+    public static ArrayList<ArrayList<Integer>> mergingArrays(ArrayList<Integer> states, List<Integer[]> nfa, int alphabetLength) {
+        ArrayList<ArrayList<Integer>> al = new ArrayList<ArrayList<Integer>>();
+        ArrayList<ArrayList<Integer>> save = new ArrayList<ArrayList<Integer>>();
+        for(int i = 0; i < alphabetLength; i++) {
+            for(int j = 0; j < states.size(); j++) {
+                // System.out.println("state[" + i +"]: " + states.get(j));
+                // System.out.println("alphabet: " + i);
+                al.add(new ArrayList<Integer>(getDFASetofAlphabet(states.get(j), nfa, alphabetLength, i)));
+                if(j > 0) {
+                    al.get(al.size() - 1).addAll(al.get(al.size() - 2));
+                }
+            }
+            // System.out.println("testing 1");
+                ArrayList<Integer> noDupes = new ArrayList<>(new LinkedHashSet<>(al.get(al.size()-1)));
+                // System.out.println("testing 2");
+                save.add(new ArrayList(noDupes));
+                if(save.get(save.size() - 1).contains(0) && save.get(save.size() - 1).size() > 1) {
+                    save.get(save.size() - 1).removeAll(Arrays.asList(0));
+                } 
+            al.clear();
+            // Collections.sort(save.get(save.size() - 1));
+        }
+        // for (int i = 0; i<save.size(); i++) {
+        //     System.out.println("save["+ i +"]: " + save.get(i).toString());
+        // }
+        return save;
+    }
+
+    public static void printDFA(ArrayList<ArrayList<Integer>> dfaState, ArrayList<ArrayList<ArrayList<Integer>>> mergedArray, int currentDFAState,String[] alphabet) {
+        for(int alphabetIndex = 0; alphabetIndex < alphabet.length; alphabetIndex++) {
+            System.out.print("Delta'({"); 
+            // System.out.print("Delta'({" + dfaState.get(1).get(0) + "," + dfaState.get(1).get(1)+ dfaState.get(1).get(2) + "}," + alphabet[0] + ") = {");
+            for(int dfaStateIndex = 0; dfaStateIndex < dfaState.get(currentDFAState).size(); dfaStateIndex++){
+                System.out.print(dfaState.get(currentDFAState).get(dfaStateIndex));
+                if(dfaState.get(currentDFAState).size() - 1 == dfaStateIndex) {
+                    System.out.print("}) = ");
+                }
+                else {
+                    System.out.print(",");
+                }
+            }
+            System.out.print("{");
+            for(int stateIndex = 0; stateIndex < mergedArray.get(currentDFAState).get(alphabetIndex).size(); stateIndex++) {
+                System.out.print(mergedArray.get(currentDFAState).get(alphabetIndex).get(stateIndex));
+                if(mergedArray.get(currentDFAState).get(alphabetIndex).size() - 1 == stateIndex) {
+                    System.out.print("}");
+                }
+                else {
+                    System.out.print(",");
+                }
+            }
+            System.out.println();
+        }
     }
 }
+
+// System.out.print("Delta'({" + dfaState.get(1).get(0) + "," + dfaState.get(1).get(1)+ dfaState.get(1).get(2) + "}," + alphabet[0] + ") = {");
+        // for(int i = 0; i < mergedArray.get(1).get(0).size(); i++) {
+        //     System.out.print(mergedArray.get(0).get(0).get(i));
+        //     if(mergedArray.get(0).get(0).size() == i) {
+        //         System.out.print("}");
+        //     }
+        //     else {
+        //         System.out.print(",");
+        //     }
+        // }
+        // System.out.println();
