@@ -42,7 +42,7 @@ public class main
         //Ask for the final states
         List<Integer[]> finalStates = FTuple.findFinalStates();
 
-        /*** RETRIEVE Start Final States***/
+        /*** RETRIEVE dfa***/
         // List<List<Integer>> dfa = 
         FTuple.nfa2dfa(nfaQ, nfaE, nfa, startState, finalStates);
     }

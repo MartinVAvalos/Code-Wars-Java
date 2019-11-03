@@ -166,56 +166,117 @@ public class FTuple {
         ArrayList<ArrayList<Integer>> dfaState = new ArrayList();
         ArrayList<ArrayList<ArrayList<Integer>>> mergedArray = new ArrayList();
         ArrayList<ArrayList<ArrayList<Integer>>> temp = new ArrayList();
+        ArrayList<ArrayList<Integer>> temp2 = new ArrayList();
         ArrayList<ArrayList<Integer>> dfa = new ArrayList();
         ArrayList<Integer> zero = new ArrayList<>(Arrays.asList(0));
         int epsilon = alphabet.length+1;
-
+        int dfaCounter = 0;
         dfaState.add(epsilonEnclosure(nfa, sState, epsilon));
 
-        int currentDFAState = 0;
-        mergedArray.add(mergingArrays(dfaState.get(0), nfa, alphabet.length));
-        System.out.println("It's time boiz");System.out.println("It's time boiz");System.out.println("It's time boiz");
+        // mergedArray.add(mergingArrays(dfaState.get(0), nfa, alphabet.length));
 
-        // for(int i=0; i < mergedArray.get(mergedArray.size() - 1).get(mergedArray.size() -1); i++) {
-            System.out.println("hello: " + mergedArray.get(mergedArray.size() - 1).get(0));
-        // }
-        // dfaState.add(mergedArray.get(mergedArray.size() - 1).get(0));
-        // mergedArray.add(mergingArrays(dfaState.get(1), nfa, alphabet.length));
+        temp.add(mergingArrays(dfaState.get(dfaState.size()-1), nfa, alphabet.length));
+        // currentDFAState++;
+        // System.out.println("size: " + temp.get(temp.size() - 1).get(0).size());
+        int length = 0;
+        for(int alphabetIndex = 0; alphabetIndex < alphabet.length; alphabetIndex++) {
+            length = temp.get(temp.size() - 1).get(alphabetIndex).size();
+            for(int stateIndex = 0; stateIndex < length; stateIndex++) {
+                if(!temp.get(temp.size() - 1).get(alphabetIndex).equals(zero)) {
+                    temp.get(temp.size() - 1).get(alphabetIndex).addAll(epsilonEnclosure(nfa, temp.get(temp.size() - 1).get(alphabetIndex).get(stateIndex), epsilon));
+                }
+            }
+        }
+        // System.out.println("hello: " + temp.get(0).toString());
+        for(int alphabetIndex = 0; alphabetIndex < alphabet.length; alphabetIndex++) {
+            ArrayList<Integer> epsilonSet = new ArrayList<> (new HashSet<>(temp.get(temp.size() - 1).get(alphabetIndex)));
+            temp2.add(epsilonSet);
+        }
+        mergedArray.add(new ArrayList(temp2));
+        temp2.clear();
 
-        // dfaState.add(mergedArray.get(mergedArray.size() - 1).get(1));
+        System.out.println("first merged: " + mergedArray.toString());
 
-
-        ArrayList<Integer> save1 = new ArrayList();
-        ArrayList<Integer> save2 = new ArrayList();
-        boolean complete = false; 
+        boolean complete = false;
+        int dfaLength;
+        ArrayList<ArrayList<Integer>> dfaStateTemp = new ArrayList();
         while(!complete) {
-            for(int i = 0; i < dfaState.size(); i++) {
-                for(int j = 0; j < mergedArray.get(mergedArray.size() - 1).size(); j++) {
-                    System.out.println("j: " + j);
-                    System.out.println("mergeSize: " + mergedArray.get(mergedArray.size() - 1).size());
-                    System.out.println("dfa" + dfaState.get(i).toString());
-                    System.out.println("merged" + mergedArray.get(mergedArray.size() - 1).get(j).toString());
-                    if(!dfaState.get(i).equals(mergedArray.get(mergedArray.size() - 1).get(j))
-                        && !mergedArray.get(mergedArray.size() - 1).get(j).equals(zero)) {
-                        
-                        System.out.println("New DFA State");
-                        dfaState.add(mergedArray.get(mergedArray.size() - 1).get(j));
-                        temp.add(mergingArrays(dfaState.get(dfaState.size() - 1), nfa, alphabet.length));
+            //check if new state was found
+            dfaLength = dfaState.size();
+            for(int stateIndex = 0; stateIndex < dfaLength; stateIndex++) {
+                for(int alphabetIndex = 0; alphabetIndex < alphabet.length; alphabetIndex++) {
+                    if(!dfaState.get(stateIndex).equals(mergedArray.get(mergedArray.size() - 1).get(alphabetIndex)) && !mergedArray.get(mergedArray.size() - 1).get(alphabetIndex).equals(zero)) {
+                        // add new State to dfaState
+                        System.out.println("merged: " + mergedArray.toString());
+                        dfaCounter++;
+                        System.out.println("dfastate: " + dfaState.toString());
+                        dfaState.add(mergedArray.get(mergedArray.size() - 1).get(alphabetIndex));
+                        System.out.println("dfastate after add: " + dfaState.toString());
+                    }
+                    else {
+                        // complete = true;
+                    }
+                }
+            }
+            for(int i = 0; i < dfaCounter; i++) {
+                System.out.println("dfaState: " + dfaState.get(dfaState.size()-1 - (i)).toString());
+                System.out.println("currentDFAState: " + (dfaState.size()-1 - (i)));
+                for(int alphabetIndex = 0; alphabetIndex < alphabet.length; alphabetIndex++) {
+                    if(!mergedArray.get(mergedArray.size() - 1).get(alphabetIndex).equals(zero)) {
+                        System.out.println("before merge temp: " + temp.toString());
+                        System.out.println("mergeArray check: " + mergedArray.get(mergedArray.size() - 1).get(alphabetIndex).toString());
+                        System.out.println("dfaState check: " + dfaState.get(dfaState.size()-1 - (i)));
+                        temp.add(new ArrayList(mergingArrays(dfaState.get(dfaState.size()-1 - (i)), nfa, alphabet.length)));
+                        System.out.println("after merge temp: " + temp.toString());
+
+                        // currentDFAState++;
+                        // System.out.println("size: " + temp.get(temp.size() - 1).get(0).size());
+                        length = 0;
+                        for(int aIndex = 0; aIndex < alphabet.length; aIndex++) {
+                            length = temp.get(temp.size() - 1).get(aIndex).size();
+                            for(int stateIndex = 0; stateIndex < length; stateIndex++) {
+                                if(!temp.get(temp.size() - 1).get(aIndex).equals(zero)) {
+                                    temp.get(temp.size() - 1).get(aIndex).addAll(epsilonEnclosure(nfa, temp.get(temp.size() - 1).get(aIndex).get(stateIndex), epsilon));
+                                }
+                            }
+                            System.out.println("temp: " + temp.toString());
+                        }
+                        // System.out.println("hello: " + temp.get(0).toString());
+                        for(int aIndex = 0; aIndex < alphabet.length; aIndex++) {
+                            ArrayList<Integer> epsilonSet = new ArrayList<> (new HashSet<>(temp.get(temp.size() - 1).get(aIndex)));
+                            temp2.add(epsilonSet);
+                        }
+                        System.out.println("temp2.get(size-1): " + temp2.get(temp2.size() - 1).toString());
+                        System.out.println("temp2: " + temp2.toString());
+                        mergedArray.add(new ArrayList(temp2));
+                        temp2.clear();
+                        System.out.println("merged: " + mergedArray.toString());
+                    }
+                }
+            }
+
+
+
+            for(int stateIndex = 0; stateIndex < dfaLength; stateIndex++) {
+                for(int alphabetIndex = 0; alphabetIndex < alphabet.length; alphabetIndex++) {
+                    if(!dfaState.get(stateIndex).equals(mergedArray.get(mergedArray.size() - 1).get(alphabetIndex)) && !mergedArray.get(mergedArray.size() - 1).get(alphabetIndex).equals(zero)) {
+                        // dfaState.add(mergedArray.get(mergedArray.size() - 1).get(alphabetIndex));
                     }
                     else {
                         complete = true;
                     }
                 }
-                for(ArrayList<ArrayList<Integer>> al: temp) {
-                    mergedArray.add(al);
-                }
             }
-            // ArrayList<Integer> noDupes = new ArrayList<>(new HashSet<>(al.get(al.size() - 1)));
         }
-        printDFA(dfaState, mergedArray, currentDFAState, alphabet);
+
+        // for(int i = 0; i < (dfaState.size()+1)/2; i++) {
+        //     printDFA(dfaState, mergedArray, i, alphabet);
+        // }
+        printDFA(dfaState, mergedArray, 0, alphabet);
         printDFA(dfaState, mergedArray, 1, alphabet);
         printDFA(dfaState, mergedArray, 2, alphabet);
-        
+        // printDFA(dfaState, mergedArray, 3, alphabet);
+
     }
 
     public static ArrayList<Integer> findE(List<Integer[]> nfa, int state, int epsilon) {
@@ -296,6 +357,7 @@ public class FTuple {
                     // System.out.println("Enclosure: Awesome sauce!");
                 }
             }
+            // System.out.println("epsilon" + al.get(al.size() - 1).toString());
             return al.get(al.size() - 1);
         }
     }
@@ -330,8 +392,8 @@ public class FTuple {
 
         // getSet(nfa, nfaAsDFA.get(nfaAsDFA.size() - 1).get(0), alphabet.length, 0);
         al.add(getSet(nfa, state, aLength, alphabetElement));
-        System.out.println("First added: " + al.get(0).get(0));
-        System.out.println("state: " + state);
+        // System.out.println("First added: " + al.get(0).get(0));
+        // System.out.println("state: " + state);
         boolean unique = false;
         for (int i = 0; i < al.get(0).size(); i++) {
             if(al.get(0).get(0) != state) {
@@ -379,9 +441,7 @@ public class FTuple {
 
                 Collections.sort(save.get(0));
 
-                // // // compare saved with new set
-                // System.out.println("al.get(size() - 1)" + al.get(al.size() - 1));
-                // System.out.println("save.get(size() - 1)" + save.get(0));
+                // compare saved with new set
                 if(al.get(al.size() - 1).size() == save.get(0).size()) {
                     for(int i = 0; i<al.get(al.size() - 1).size(); i++) {
                         if(al.get(al.size() - 1).get(i) == save.get(0).get(i)) {
@@ -393,7 +453,7 @@ public class FTuple {
                     if(al.get(al.size() - 1).contains(0) && al.get(al.size() - 1).size() > 1) {
                         al.get(al.size() - 1).removeAll(Arrays.asList(0));
                     } 
-                    System.out.println("final al" + al.get(al.size() - 1));
+                    // System.out.println("final al" + al.get(al.size() - 1));
                     complete = true;
                     // System.out.println("Alphabet: Awesome sauce!");
                 }
@@ -432,12 +492,11 @@ public class FTuple {
 
     public static void printDFA(ArrayList<ArrayList<Integer>> dfaState, ArrayList<ArrayList<ArrayList<Integer>>> mergedArray, int currentDFAState,String[] alphabet) {
         for(int alphabetIndex = 0; alphabetIndex < alphabet.length; alphabetIndex++) {
-            System.out.print("Delta'({"); 
-            // System.out.print("Delta'({" + dfaState.get(1).get(0) + "," + dfaState.get(1).get(1)+ dfaState.get(1).get(2) + "}," + alphabet[0] + ") = {");
+            System.out.print("Delta'({");
             for(int dfaStateIndex = 0; dfaStateIndex < dfaState.get(currentDFAState).size(); dfaStateIndex++){
                 System.out.print(dfaState.get(currentDFAState).get(dfaStateIndex));
                 if(dfaState.get(currentDFAState).size() - 1 == dfaStateIndex) {
-                    System.out.print("}) = ");
+                    System.out.print("},"+ alphabet[alphabetIndex] +") = ");
                 }
                 else {
                     System.out.print(",");
